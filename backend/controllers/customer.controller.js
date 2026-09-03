@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import generateToken from "../utils/generateToken.js";
 
 const registerCustomer = async (req,res) =>{
+    //console.log("req recieved");
     const { fullName, email, password, phone } = req.body;
 
     if(!fullName|| !email || !password || !phone){
@@ -28,6 +29,7 @@ const registerCustomer = async (req,res) =>{
         success:true,
         message: "Customer registered successfully",
         customer:{
+            id:customer._id,
             fullName:fullName,
             email:email,
             phone:phone
