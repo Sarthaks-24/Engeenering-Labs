@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import customerRoutes from "./routes/customer.routes.js";
 import cookieParser from "cookie-parser";
+import productsRouter from './routes/product.routes.js';
 
 
 const app = express();
@@ -30,6 +31,7 @@ app.use(express.json());
 
 
 app.use("/customers", customerRoutes);
+app.use("/products",productsRouter);
 
 
 app.listen(process.env.PORT, () => {
