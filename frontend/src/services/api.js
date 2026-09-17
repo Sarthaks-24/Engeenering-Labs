@@ -5,11 +5,12 @@ const api = axios.create({
   withCredentials: true,
 });
 
-export const getProducts = async (search = "", category = "") => {
+export const getProducts = async (search = "", category = "", sort="") => {
   const params = {};
 
   if (search) params.search = search;
   if (category) params.category = category;
+  if (sort) params.sort = sort;
 
   const response = await api.get("/products", {
     params,

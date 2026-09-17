@@ -6,6 +6,7 @@ function Products() {
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
+  const [sort,setSort] = useState("");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -16,7 +17,7 @@ function Products() {
         setLoading(true);
         setError("");
 
-        const data = await getProducts(search, category);
+        const data = await getProducts(search, category, sort);
 
         setProducts(data.products);
       } catch (err) {
@@ -27,7 +28,7 @@ function Products() {
     };
 
     fetchProducts();
-  }, [search, category]);
+  }, [search, category,sort]);
 
   return (
     <div className="min-h-screen bg-gray-100 px-6 py-10">
@@ -65,6 +66,16 @@ function Products() {
             <option value="Fashion">Fashion</option>
             <option value="Books">Books</option>
             <option value="Home">Home</option>
+          </select>
+
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+          >
+            <option value="">Default</option>
+            <option value="price_asc">Ascending</option>
+            <option value="price_desc">Descending</option>
           </select>
 
         </div>
