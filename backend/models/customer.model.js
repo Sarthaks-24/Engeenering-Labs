@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const customerSchema = mongoose.Schema({
     name:{
@@ -20,7 +20,12 @@ const customerSchema = mongoose.Schema({
     },
     createdAt:{
         type:Date,
-        default:Date.now()
+        default:Date.now
+    },
+    wishlist:{
+        type:[Schema.Types.ObjectId],
+        ref:"Product",
+        default:[]
     }
 })
 

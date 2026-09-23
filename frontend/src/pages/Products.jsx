@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { getProducts } from "../services/api";
+import Navbar from "../components/Navbar";
 
 function Products() {
   const [products, setProducts] = useState([]);
@@ -31,19 +32,13 @@ function Products() {
   }, [search, category,sort]);
 
   return (
+<>
+        {/* Header */}
+        <div>
+        <Navbar/>
+        </div>
     <div className="min-h-screen bg-gray-100 px-6 py-10">
       <div className="mx-auto max-w-7xl">
-
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">
-            ShopKart
-          </h1>
-
-          <p className="mt-2 text-gray-600">
-            Discover products you'll love.
-          </p>
-        </div>
 
         {/* Search & Filter */}
         <div className="mb-8 flex flex-col gap-4 rounded-xl bg-white p-5 shadow-sm md:flex-row">
@@ -123,6 +118,7 @@ function Products() {
 
       </div>
     </div>
+    </>
   );
 }
 

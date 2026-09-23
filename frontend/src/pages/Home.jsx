@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import api from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 
 
 function Home() {
+  const navigate = useNavigate();
   const [data,setData] = useState({
     name:'guest',
     email:'guest@gmail.com',
@@ -17,11 +19,15 @@ function Home() {
       setData(tdata.data);
     }catch(err){
       console.log(err);
+      navigate('/login');
+
+
     }
 
   }
   useEffect(() => {
       getData();
+
   }, []);
   return (
     <div className="min-h-screen bg-gray-100">

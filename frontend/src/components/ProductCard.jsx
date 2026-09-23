@@ -1,32 +1,59 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../services/api";
 
 function ProductCard({ product }) {
+  const [saving, setSaving] = useState(false);
+  const [wishlistAdded, setWishlistAdded] = useState(false);
+  const [wishlistError, setWishlistError] = useState("");
+
+  const handleAddWishlist = async () => {
+    try {
+      setSaving(true);
+      setWishlistError("");
+
+      await api.post(`/wishlist/${product._id}`);
+
+      setWishlistAdded(true);
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setWishlistError(
+          "Product is already in your wishlist."
+        );
+      } else {
+        setWishlistError(
+          "Unable to save product. Please try again."
+        );
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="overflow-hidden rounded-xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-xl">
+    <div className="bg-white rounded-xl shadow-md overflow-hidden">
+
       <img
         src={product.image}
         alt={product.name}
-        className="h-52 w-full object-cover"
+        className="w-full h-52 object-cover"
       />
 
-      <div className="p-5">
-        <p className="mb-2 text-sm font-medium text-blue-600">
-          {product.category}
-        </p>
+      <div className="p-4">
 
-        <h2 className="mb-2 text-xl font-semibold text-gray-900">
+        <h2 className="text-xl font-semibold text-gray-800">
           {product.name}
         </h2>
 
-        <p className="mb-3 text-2xl font-bold text-gray-900">
+        <p className="text-sm text-gray-500 mt-1">
+          {product.category}
+        </p>
+
+        <p className="text-xl font-bold text-gray-900 mt-2">
           ₹{product.price}
         </p>
 
-        <p
-          className={`mb-4 text-sm font-medium ${
-            product.stock > 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
+        <p className="text-sm text-gray-600 mt-1">
           {product.stock > 0
             ? `${product.stock} units left`
             : "Out of stock"}
@@ -34,10 +61,29 @@ function ProductCard({ product }) {
 
         <Link
           to={`/products/${product._id}`}
-          className="block w-full rounded-lg bg-blue-600 px-4 py-2 text-center font-medium text-white transition hover:bg-blue-700"
+          className="block text-center mt-4 bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-900"
         >
           View Details
         </Link>
+
+        <button
+          onClick={handleAddWishlist}
+          disabled={saving || wishlistAdded}
+          className="w-full mt-3 py-2 rounded-lg bg-pink-500 text-white hover:bg-pink-600 disabled:opacity-60"
+        >
+          {saving
+            ? "⏳ Saving..."
+            : wishlistAdded
+            ? "♥ Added to Wishlist"
+            : "♡ Add to Wishlist"}
+        </button>
+
+        {wishlistError && (
+          <p className="text-sm text-red-500 mt-2">
+            {wishlistError}
+          </p>
+        )}
+
       </div>
     </div>
   );

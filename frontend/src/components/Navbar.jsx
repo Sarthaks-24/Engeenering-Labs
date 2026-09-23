@@ -2,27 +2,58 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function Navbar() {
-    const navigate = useNavigate();
-    const handleLogout = async ()=>{
-        try{
-            const logout = await api.post('/customers/logout');
-            console.log(logout);
-            navigate('/login');
-        }catch(err){
-            console.log(err);
-        }
-    }
+  const nav = useNavigate();
+  const handleLogout=async()=>{
+    try{
+      const logout  = await api.post('/customers/logout');
+      console.log(logout);
+      nav('/login');
+    }catch (err) {
+        console.log("Something went wrong while loading products.");
+      }
 
+  }
   return (
-    <nav className="bg-black text-white px-6 py-4 flex items-center justify-between">
-      <Link to="/home" className="text-xl font-bold">
-        ShopKart
-      </Link>
+    <nav className="bg-gray-900 text-white px-6 py-4">
+      <div className="max-w-7xl mx-auto flex items-center justify-between">
 
-      <button className="bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200"
-      onClick={handleLogout}>
-        Logout
-      </button>
+        <Link
+          to="/"
+          className="text-2xl font-bold"
+        >
+          ShopKart
+        </Link>
+
+        <div className="flex items-center gap-6">
+
+          <Link
+            to="/"
+            className="hover:text-gray-300"
+          >
+            Home
+          </Link>
+
+          <Link
+            to="/products"
+            className="hover:text-gray-300"
+          >
+            Products
+          </Link>
+
+          <Link
+            to="/wishlist"
+            className="hover:text-gray-300"
+          >
+            Wishlist
+          </Link>
+
+          <button className="hover:text-gray-300" onClick={handleLogout}>
+            Logout
+          </button>
+
+        </div>
+
+      </div>
     </nav>
   );
 }

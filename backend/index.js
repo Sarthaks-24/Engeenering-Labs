@@ -5,6 +5,7 @@ import cors from 'cors';
 import customerRoutes from "./routes/customer.routes.js";
 import cookieParser from "cookie-parser";
 import productsRouter from './routes/product.routes.js';
+import wishlistRouter from './routes/wishlist.routes.js';
 
 
 const app = express();
@@ -32,6 +33,7 @@ app.use(express.json());
 
 app.use("/customers", customerRoutes);
 app.use("/products",productsRouter);
+app.use("/wishlist",wishlistRouter);
 
 
 app.listen(process.env.PORT, () => {

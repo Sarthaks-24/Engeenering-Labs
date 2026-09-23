@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link, useNavigation } from "react-router-dom";
+import { Link, useNavigate} from "react-router-dom";
 import api from '../services/api';
 
 function Register() {
-  const nagivate = useNavigation();
+  const nagivate = useNavigate();
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -21,17 +21,16 @@ function Register() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const response = await api.post("/customers/register", formData);
-
-    console.log(response.data);
-    nagivate('/login')
-  } catch (error) {
-    console.log(error);
-  }
-};
+    try {
+      const response = await api.post("/customers/register", formData);
+      console.log(response.data);
+      nagivate('/login')
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
