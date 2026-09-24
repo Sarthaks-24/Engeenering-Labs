@@ -62,25 +62,39 @@ const getWishlist = async (req,res) => {
 }
 
 const deleteWishlist = async (req,res)=>{
-    const userid  = req.user._id;
-    const productId = req.params.id;
-    if(!mongoose.Types.ObjectId.isValid(productId)){
-        return res.status(400).json({error:"Product Id Invalid"});
+    try{
+        const userid  = req.user._id;
+        const productId = req.params.id;
+        if(!mongoose.Types.ObjectId.isValid(productId)){
+            return res.status(400).json({error:"Product Id Invalid"});
+        }
+
+        const user = await Customer.findById(userid);
+        const orig = user.wishlist.length;
+        user.wishlist = user.wishlist.filter(product => product.toString()!=productId);
+        if(orig===user.wishlist.length){
+            return res.status(404).json({error:"Product not in wishlist"});
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            "success": true,
+            "message": "Product removed from wishlist"
+        })
+    }catch(err){
+        res.status(500).json({message:"Internal Server Error"});
     }
-
-    const user = await Customer.findById(userid);
-    const orig = user.wishlist.length;
-    user.wishlist = user.wishlist.filter(product => product.toString()!=productId);
-    if(orig===user.wishlist.length){
-        return res.status(404).json({error:"Product not in wishlist"});
-    }
-
-    await user.save();
-
-    return res.status(200).json({
-        "success": true,
-        "message": "Product removed from wishlist"
-    })
 }
 
-export {addWishlist,getWishlist,deleteWishlist}
+const countWishlist = async (req,res)=>{
+    try{
+        const userid = req.user._id;
+        const user = await Customer.findById(userid);
+        const orig = user.wishlist.length;
+        return res.status(200).json({count:orig});
+    }catch(err){
+        res.status(500).json({message:"Internal Server Error"});
+    }
+}
+export {addWishlist,getWishlist,deleteWishlist,countWishlist}

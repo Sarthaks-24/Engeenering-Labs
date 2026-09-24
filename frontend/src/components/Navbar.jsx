@@ -1,8 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { useEffect, useState } from "react";
 
 function Navbar() {
   const nav = useNavigate();
+  const [count,setCount] = useState();
   const handleLogout=async()=>{
     try{
       const logout  = await api.post('/customers/logout');
@@ -13,6 +15,16 @@ function Navbar() {
       }
 
   }
+
+  const getCount = async()=>{
+    try{
+      const res = await api.get('/wishlist/count');
+      setCount(res.data.count);
+    }catch(err){
+      console.log(err);
+    }
+  }
+  useEffect(()=>{getCount()},[])
   return (
     <nav className="bg-gray-900 text-white px-6 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -44,7 +56,7 @@ function Navbar() {
             to="/wishlist"
             className="hover:text-gray-300"
           >
-            Wishlist
+            Wishlist {' ('+count+')'}
           </Link>
 
           <button className="hover:text-gray-300" onClick={handleLogout}>
