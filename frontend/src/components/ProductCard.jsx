@@ -1,11 +1,23 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../services/api";
+import CartContext from "../context/CartContext";
 
 function ProductCard({ product }) {
+  const { addCart } = useContext(CartContext);
   const [saving, setSaving] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
   const [wishlistAdded, setWishlistAdded] = useState(false);
   const [wishlistError, setWishlistError] = useState("");
+
+  const handleAddCart = async () => {
+    try {
+      setAddingToCart(true);
+      await addCart(product._id);
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   const handleAddWishlist = async () => {
     try {
@@ -65,6 +77,14 @@ function ProductCard({ product }) {
         >
           View Details
         </Link>
+
+        <button
+          onClick={handleAddCart}
+          disabled={addingToCart}
+          className="w-full mt-3 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+        >
+          {addingToCart ? "Adding..." : "Add to Cart"}
+        </button>
 
         <button
           onClick={handleAddWishlist}
