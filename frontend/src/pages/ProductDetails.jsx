@@ -18,7 +18,7 @@ function ProductDetails() {
         const data = await getProduct(id);
 
         setProduct(data);
-      } catch (err) {
+      } catch{
         setError("Something went wrong while loading the product.");
       } finally {
         setLoading(false);
@@ -72,7 +72,7 @@ function ProductDetails() {
             <img
               src={product.image}
               alt={product.name}
-              className="h-full max-h-[600px] w-full object-cover"
+              className="h-full max-h-150 w-full object-cover"
             />
           </div>
 

@@ -12,22 +12,26 @@ function Home() {
     email:'guest@gmail.com',
     phone:'1234567890'
   });
-  const getData = async()=>{
-    try{
-      const tdata = await api.post('customers/me');
-      console.log(tdata);
-      setData(tdata.data);
-    }catch(err){
-      console.log(err);
-      navigate('/login');
-
-
-    }
-
-  }
   useEffect(() => {
-      getData();
-  }, []);
+    let cancelled = false;
+
+    api.post('customers/me')
+      .then((response) => {
+        if (!cancelled) {
+          setData(response.data);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        if (!cancelled) {
+          navigate('/login');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
