@@ -2,12 +2,18 @@ import Customer from "../models/customer.model.js";
 import bcrypt from 'bcrypt';
 import generateToken from "../utils/generateToken.js";
 
+const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
 const registerCustomer = async (req,res) =>{
     //console.log("req recieved");
     const { fullName, email, password, phone } = req.body;
 
     if(!fullName|| !email || !password || !phone){
         return res.status(400).json({'error':"Missing a required field"});
+    }
+
+    if(!isValidEmail(email)){
+        return res.status(400).json({error:"Invalid email format"});
     }
 
     if(password.length<6) return res.status(400).json({'error':"Password too Short"});
@@ -40,6 +46,10 @@ const registerCustomer = async (req,res) =>{
 const loginCustomer = async(req,res)=>{
     try{
         const{email,password} = req.body;
+
+        if(!email || !isValidEmail(email)){
+            return res.status(400).json({error:"Invalid email format"});
+        }
 
         const user = await Customer.findOne({email});
 
