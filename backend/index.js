@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import productsRouter from './routes/product.routes.js';
 import wishlistRouter from './routes/wishlist.routes.js';
 import cartRouter from './routes/cart.routes.js';
+import orderRouter from './routes/order.routes.js';
 
 
 const app = express();
@@ -36,6 +37,7 @@ app.use("/customers", customerRoutes);
 app.use("/products",productsRouter);
 app.use("/wishlist",wishlistRouter);
 app.use("/cart",cartRouter);
+app.use("/orders", orderRouter);
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);

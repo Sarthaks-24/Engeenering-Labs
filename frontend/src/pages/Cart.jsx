@@ -1,5 +1,5 @@
 import { useContext, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import CartContext from "../context/CartContext";
 import Navbar from "../components/Navbar";
 
@@ -7,6 +7,7 @@ const formatPrice = (value) =>
   `₹${Number(value).toLocaleString("en-IN")}`;
 
 function Cart() {
+  const navigate = useNavigate();
   const {
     cartItems,
     loading,
@@ -172,7 +173,8 @@ function Cart() {
                 </div>
                 <button
                   type="button"
-                  className="w-full mt-6 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-60"
+                  onClick={() => navigate("/checkout")}
+                  className="w-full mt-6 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 disabled:opacity-60 font-semibold cursor-pointer"
                   disabled={loading}
                 >
                   Proceed to Checkout

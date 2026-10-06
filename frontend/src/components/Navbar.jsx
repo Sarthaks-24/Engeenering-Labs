@@ -83,6 +83,13 @@ function Navbar() {
             Cart ({cartCount})
           </Link>
 
+          <Link
+            to="/orders"
+            className="hover:text-gray-300"
+          >
+            Orders
+          </Link>
+
           <button className="hover:text-gray-300" onClick={handleLogout}>
             Logout
           </button>
