@@ -16,10 +16,18 @@ const formatDate = (dateString) => {
   });
 };
 
+const STATUS_STEPS = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
+
+const getStepIndex = (status) => {
+  const index = STATUS_STEPS.indexOf(status);
+  return index >= 0 ? index : 0;
+};
+
 function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updatingId, setUpdatingId] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -47,6 +55,23 @@ function Orders() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    try {
+      setUpdatingId(orderId);
+      await api.patch(`/orders/${orderId}/status`, { status: newStatus });
+      setOrders((prev) =>
+        prev.map((o) => (o._id === orderId ? { ...o, status: newStatus } : o))
+      );
+    } catch (err) {
+      alert(
+        "Failed to update status: " +
+          (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   return (
     <>
@@ -79,7 +104,7 @@ function Orders() {
               <button
                 type="button"
                 onClick={fetchOrders}
-                className="mt-6 bg-gray-800 text-white px-6 py-2.5 rounded-lg hover:bg-gray-900 transition"
+                className="mt-6 bg-gray-800 text-white px-6 py-2.5 rounded-lg hover:bg-gray-900 transition cursor-pointer"
               >
                 Try Again
               </button>
@@ -108,68 +133,157 @@ function Orders() {
           {/* Orders list */}
           {!loading && !error && orders.length > 0 && (
             <div className="space-y-6">
-              {orders.map((order) => (
-                <article
-                  key={order._id}
-                  className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
-                >
-                  {/* Card Header */}
-                  <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2 bg-gray-50/50">
-                    <div>
-                      <h2 className="text-lg font-bold text-gray-900">
-                        Order #{order._id}
-                      </h2>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        {formatDate(order.createdAt)}
-                      </p>
-                    </div>
-                    <span
-                      className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        order.status === "DELIVERED"
-                          ? "bg-green-100 text-green-800"
-                          : order.status === "PLACED" ||
-                            order.status === "CONFIRMED"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-amber-100 text-amber-800"
-                      }`}
-                    >
-                      Status: {order.status || "PLACED"}
-                    </span>
-                  </div>
+              {orders.map((order) => {
+                const currentStepIdx = getStepIndex(order.status);
 
-                  {/* Card Body */}
-                  <div className="p-5 sm:p-6">
-                    <div className="space-y-2 mb-4">
-                      {order.items?.map((item, idx) => (
-                        <div
-                          key={item.product || idx}
-                          className="flex justify-between text-gray-700 text-sm sm:text-base"
-                        >
-                          <span>
-                            {item.name} × {item.quantity}
-                          </span>
-                          <span className="font-medium text-gray-900">
-                            {formatPrice(item.price * item.quantity)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="border-t border-gray-200 pt-4 flex flex-wrap justify-between items-center gap-4">
-                      <div className="text-lg font-bold text-gray-900">
-                        Total: {formatPrice(order.totalAmount)}
+                return (
+                  <article
+                    key={order._id}
+                    className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden"
+                  >
+                    {/* Card Header */}
+                    <div className="p-5 sm:p-6 border-b border-gray-100 flex flex-wrap justify-between items-center gap-2 bg-gray-50/50">
+                      <div>
+                        <h2 className="text-lg font-bold text-gray-900">
+                          Order #{order._id}
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {formatDate(order.createdAt)}
+                        </p>
                       </div>
 
-                      <Link
-                        to={`/orders/${order._id}`}
-                        className="inline-block bg-gray-800 hover:bg-black text-white px-5 py-2 rounded-lg text-sm font-semibold transition"
-                      >
-                        View Details
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                            order.status === "DELIVERED"
+                              ? "bg-green-100 text-green-800"
+                              : order.status === "SHIPPED"
+                              ? "bg-indigo-100 text-indigo-800"
+                              : order.status === "CONFIRMED"
+                              ? "bg-purple-100 text-purple-800"
+                              : order.status === "PLACED"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-amber-100 text-amber-800"
+                          }`}
+                        >
+                          Status: {order.status || "PLACED"}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </article>
-              ))}
+
+                    {/* Visual Status Progression Tracker */}
+                    <div className="px-6 py-5 bg-slate-50 border-b border-gray-100">
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center sm:text-left">
+                        Order Progress
+                      </p>
+                      <div className="relative flex items-center justify-between max-w-xl mx-auto px-2">
+                        {/* Static grey line */}
+                        <div className="absolute top-3.5 left-6 right-6 h-1 bg-gray-200 -z-0" />
+
+                        {/* Active blue progress line */}
+                        <div
+                          className="absolute top-3.5 left-6 h-1 bg-blue-600 transition-all duration-300 -z-0"
+                          style={{
+                            width: `${
+                              (currentStepIdx / (STATUS_STEPS.length - 1)) * 88
+                            }%`,
+                          }}
+                        />
+
+                        {STATUS_STEPS.map((step, idx) => {
+                          const isCompleted = idx < currentStepIdx;
+                          const isCurrent = idx === currentStepIdx;
+
+                          return (
+                            <div
+                              key={step}
+                              className="flex flex-col items-center relative z-10"
+                            >
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                                  isCompleted
+                                    ? "bg-green-600 text-white ring-4 ring-green-100"
+                                    : isCurrent
+                                    ? "bg-blue-600 text-white ring-4 ring-blue-100 shadow-md animate-pulse"
+                                    : "bg-white border-2 border-gray-300 text-gray-400"
+                                }`}
+                              >
+                                {isCompleted ? "✓" : idx + 1}
+                              </div>
+                              <span
+                                className={`mt-1.5 text-[11px] font-semibold tracking-tight ${
+                                  isCurrent
+                                    ? "text-blue-700 font-bold"
+                                    : isCompleted
+                                    ? "text-green-700"
+                                    : "text-gray-400"
+                                }`}
+                              >
+                                {step}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Card Body */}
+                    <div className="p-5 sm:p-6">
+                      <div className="space-y-2 mb-4">
+                        {order.items?.map((item, idx) => (
+                          <div
+                            key={item.product || idx}
+                            className="flex justify-between text-gray-700 text-sm sm:text-base"
+                          >
+                            <span>
+                              {item.name} × {item.quantity}
+                            </span>
+                            <span className="font-medium text-gray-900">
+                              {formatPrice(item.price * item.quantity)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="border-t border-gray-200 pt-4 flex flex-wrap justify-between items-center gap-4">
+                        <div className="text-lg font-bold text-gray-900">
+                          Total: {formatPrice(order.totalAmount)}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                          {/* Dev / Admin Progression Tool */}
+                          <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-lg px-2.5 py-1 text-xs">
+                            <span className="text-gray-500 font-medium">
+                              Dev Status:
+                            </span>
+                            <select
+                              value={order.status || "PLACED"}
+                              onChange={(e) =>
+                                handleStatusUpdate(order._id, e.target.value)
+                              }
+                              disabled={updatingId === order._id}
+                              className="bg-white border border-gray-300 rounded px-1.5 py-0.5 font-semibold text-gray-800 cursor-pointer outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+                            >
+                              {STATUS_STEPS.map((s) => (
+                                <option key={s} value={s}>
+                                  {s}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <Link
+                            to={`/orders/${order._id}`}
+                            className="inline-block bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-semibold transition"
+                          >
+                            View Details
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </div>

@@ -18,11 +18,35 @@ const formatDate = (dateString) => {
   });
 };
 
+const STATUS_STEPS = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
+
+const getStepIndex = (status) => {
+  const index = STATUS_STEPS.indexOf(status);
+  return index >= 0 ? index : 0;
+};
+
 function OrderConfirmation() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [updating, setUpdating] = useState(false);
+
+  const handleStatusUpdate = async (newStatus) => {
+    if (!order?._id) return;
+    try {
+      setUpdating(true);
+      await api.patch(`/orders/${order._id}/status`, { status: newStatus });
+      setOrder((prev) => (prev ? { ...prev, status: newStatus } : prev));
+    } catch (err) {
+      alert(
+        "Failed to update status: " +
+          (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setUpdating(false);
+    }
+  };
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -121,15 +145,84 @@ function OrderConfirmation() {
                   <span>{formatDate(createdAt)}</span>
                 </div>
               )}
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="font-semibold text-gray-600">Status:</span>
-                <span className="font-bold text-green-700">
-                  {status || "PLACED"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-green-700">
+                    {order.status || "PLACED"}
+                  </span>
+                  <select
+                    value={order.status || "PLACED"}
+                    onChange={(e) => handleStatusUpdate(e.target.value)}
+                    disabled={updating}
+                    className="text-xs bg-white border border-gray-300 rounded px-1.5 py-0.5 font-semibold text-gray-800 cursor-pointer outline-none focus:ring-1 focus:ring-blue-500"
+                  >
+                    {STATUS_STEPS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
               <div className="flex justify-between text-base border-t border-gray-200 pt-2 font-bold text-gray-900">
                 <span>Total:</span>
                 <span>{formatPrice(totalAmount)}</span>
+              </div>
+            </div>
+
+            {/* Visual Status Progression Tracker */}
+            <div className="px-6 py-5 bg-slate-50 border-b border-gray-200">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 text-center sm:text-left">
+                Order Progress
+              </p>
+              <div className="relative flex items-center justify-between max-w-lg mx-auto px-2">
+                <div className="absolute top-3.5 left-5 right-5 h-1 bg-gray-200 -z-0" />
+                <div
+                  className="absolute top-3.5 left-5 h-1 bg-blue-600 transition-all duration-300 -z-0"
+                  style={{
+                    width: `${
+                      (getStepIndex(order.status) / (STATUS_STEPS.length - 1)) *
+                      88
+                    }%`,
+                  }}
+                />
+
+                {STATUS_STEPS.map((step, idx) => {
+                  const currentIdx = getStepIndex(order.status);
+                  const isCompleted = idx < currentIdx;
+                  const isCurrent = idx === currentIdx;
+
+                  return (
+                    <div
+                      key={step}
+                      className="flex flex-col items-center relative z-10"
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+                          isCompleted
+                            ? "bg-green-600 text-white ring-4 ring-green-100"
+                            : isCurrent
+                            ? "bg-blue-600 text-white ring-4 ring-blue-100 shadow-md animate-pulse"
+                            : "bg-white border-2 border-gray-300 text-gray-400"
+                        }`}
+                      >
+                        {isCompleted ? "✓" : idx + 1}
+                      </div>
+                      <span
+                        className={`mt-1.5 text-[11px] font-semibold tracking-tight ${
+                          isCurrent
+                            ? "text-blue-700 font-bold"
+                            : isCompleted
+                            ? "text-green-700"
+                            : "text-gray-400"
+                        }`}
+                      >
+                        {step}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
