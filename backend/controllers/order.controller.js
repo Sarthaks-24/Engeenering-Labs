@@ -227,6 +227,15 @@ export const verifyPayment = async (req, res) => {
     order.razorpayPaymentId = razorpay_payment_id;
     await order.save();
 
+    // Decrement purchased quantities from product stocks
+    for (const item of order.items) {
+      if (item.product) {
+        await Product.findByIdAndUpdate(item.product, {
+          $inc: { stock: -item.quantity },
+        });
+      }
+    }
+
     const user = await Customer.findById(userId);
     if (user) {
       user.cart = [];
@@ -289,6 +298,37 @@ export const getOrderById = async (req, res) => {
     });
   } catch (err) {
     console.error("Error fetching single order:", err);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const updateOrderStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const allowedStatuses = ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED"];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        error: `Invalid status. Must be one of: ${allowedStatuses.join(", ")}`,
+      });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    order.status = status;
+    await order.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Order status updated to ${status}`,
+      order,
+    });
+  } catch (err) {
+    console.error("Error updating order status:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

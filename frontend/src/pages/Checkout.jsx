@@ -125,6 +125,11 @@ function Checkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!cartItems || cartItems.length === 0) {
+      setSubmitError("Your cart is empty. Please add items before placing an order.");
+      return;
+    }
+
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -564,7 +569,7 @@ function Checkout() {
                   <div className="mt-8 flex justify-center">
                     <button
                       type="submit"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || cartItems.length === 0}
                       className="w-full sm:w-auto sm:px-12 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-black transition-colors shadow disabled:opacity-50 cursor-pointer text-center"
                     >
                       {isSubmitting ? "Processing..." : "Place Order"}

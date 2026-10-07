@@ -20,10 +20,18 @@ const CartProvider = ({ children }) => {
             const response = await api.post(`/cart/${id}`);
 
             setCartItems(response.data.cart);
+            return { success: true, cart: response.data.cart };
         } catch (err) {
-            setError(
-                err.response?.data?.error || "Unable to add product"
-            );
+            const errorMsg =
+                err.response?.data?.error ||
+                err.response?.data?.message ||
+                "Unable to add product";
+            setError(errorMsg);
+            return {
+                success: false,
+                error: errorMsg,
+                status: err.response?.status,
+            };
         } finally {
             setLoading(false);
         }
